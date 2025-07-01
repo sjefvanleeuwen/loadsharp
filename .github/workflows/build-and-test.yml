@@ -1,0 +1,150 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  DOTNET_VERSION: '9.0.x'
+  SOLUTION_FILE: 'LoadSharp.sln'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        
+    - name: Restore dependencies
+      run: dotnet restore ${{ env.SOLUTION_FILE }}
+      
+    - name: Build solution
+      run: dotnet build ${{ env.SOLUTION_FILE }} --configuration Release --no-restore
+      
+    - name: Run tests with coverage
+      run: |
+        dotnet test ${{ env.SOLUTION_FILE }} \
+          --configuration Release \
+          --no-build \
+          --verbosity normal \
+          --logger "trx;LogFileName=test-results.trx" \
+          --collect:"XPlat Code Coverage" \
+          --results-directory ./TestResults
+          
+    - name: Install ReportGenerator tool
+      run: dotnet tool install -g dotnet-reportgenerator-globaltool
+      
+    - name: Generate coverage report
+      run: |
+        reportgenerator \
+          -reports:"./TestResults/*/coverage.cobertura.xml" \
+          -targetdir:"./TestResults/CoverageReport" \
+          -reporttypes:"Html;MarkdownSummaryGithub;Cobertura" \
+          -verbosity:Info
+          
+    - name: Build test report generator
+      run: dotnet build tools/TestReportGenerator/TestReportGenerator.csproj --configuration Release
+          
+    - name: Generate test report
+      run: |
+        mkdir -p ./docs
+        dotnet run --project tools/TestReportGenerator/TestReportGenerator.csproj --configuration Release -- \
+          --input "./TestResults/test-results.trx" \
+          --output "./docs/test-results.md" \
+          --coverage "./TestResults/CoverageReport/SummaryGithub.md"
+          
+    - name: Extract metrics for badges
+      id: metrics
+      run: |
+        # Extract test results
+        if [ -f "./TestResults/test-results.trx" ]; then
+          TOTAL_TESTS=$(grep -o 'total="[0-9]*"' ./TestResults/test-results.trx | grep -o '[0-9]*' | head -1)
+          PASSED_TESTS=$(grep -o 'passed="[0-9]*"' ./TestResults/test-results.trx | grep -o '[0-9]*' | head -1)
+          FAILED_TESTS=$(grep -o 'failed="[0-9]*"' ./TestResults/test-results.trx | grep -o '[0-9]*' | head -1 || echo "0")
+        else
+          TOTAL_TESTS=0
+          PASSED_TESTS=0
+          FAILED_TESTS=0
+        fi
+        
+        # Extract coverage percentage
+        if [ -f "./TestResults/CoverageReport/SummaryGithub.md" ]; then
+          COVERAGE=$(grep -o 'Line coverage: [0-9.]*%' ./TestResults/CoverageReport/SummaryGithub.md | grep -o '[0-9.]*' | head -1 || echo "0")
+        else
+          COVERAGE="0"
+        fi
+        
+        # Generate badge colors
+        if [ "$FAILED_TESTS" -eq 0 ] && [ "$TOTAL_TESTS" -gt 0 ]; then
+          TEST_COLOR="brightgreen"
+          TEST_STATUS="passing"
+        elif [ "$TOTAL_TESTS" -eq 0 ]; then
+          TEST_COLOR="lightgrey"
+          TEST_STATUS="no tests"
+        else
+          TEST_COLOR="red"
+          TEST_STATUS="failing"
+        fi
+        
+        # Coverage color
+        if (( $(echo "$COVERAGE >= 80" | bc -l 2>/dev/null || echo 0) )); then
+          COVERAGE_COLOR="brightgreen"
+        elif (( $(echo "$COVERAGE >= 60" | bc -l 2>/dev/null || echo 0) )); then
+          COVERAGE_COLOR="yellow"
+        else
+          COVERAGE_COLOR="red"
+        fi
+        
+        echo "TOTAL_TESTS=$TOTAL_TESTS" >> $GITHUB_OUTPUT
+        echo "PASSED_TESTS=$PASSED_TESTS" >> $GITHUB_OUTPUT
+        echo "FAILED_TESTS=$FAILED_TESTS" >> $GITHUB_OUTPUT
+        echo "COVERAGE=$COVERAGE" >> $GITHUB_OUTPUT
+        echo "TEST_COLOR=$TEST_COLOR" >> $GITHUB_OUTPUT
+        echo "TEST_STATUS=$TEST_STATUS" >> $GITHUB_OUTPUT
+        echo "COVERAGE_COLOR=$COVERAGE_COLOR" >> $GITHUB_OUTPUT
+        
+    - name: Update README badges
+      if: github.ref == 'refs/heads/main'
+      run: |
+        # Update test badge
+        sed -i "s|!\[Tests\](https://img.shields.io/badge/tests-[^)]*)|![Tests](https://img.shields.io/badge/tests-${{ steps.metrics.outputs.TEST_STATUS }}-${{ steps.metrics.outputs.TEST_COLOR }})|g" readme.md
+        
+        # Update coverage badge  
+        sed -i "s|!\[Coverage\](https://img.shields.io/badge/coverage-[^)]*)|![Coverage](https://img.shields.io/badge/coverage-${{ steps.metrics.outputs.COVERAGE }}%25-${{ steps.metrics.outputs.COVERAGE_COLOR }})|g" readme.md
+        
+    - name: Commit test results
+      if: github.ref == 'refs/heads/main'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        git add docs/test-results.md readme.md
+        
+        if ! git diff --staged --quiet; then
+          git commit -m "📊 Update test results and badges [skip ci]"
+          git push
+        fi
+        
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: |
+          ./TestResults/
+          ./docs/test-results.md
+          
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      if: always()
+      with:
+        files: ./TestResults/*/coverage.cobertura.xml
+        fail_ci_if_error: false

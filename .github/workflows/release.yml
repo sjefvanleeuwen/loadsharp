@@ -1,0 +1,141 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  DOTNET_VERSION: '9.0.x'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        
+    - name: Extract version from tag
+      id: version
+      run: |
+        TAG=${GITHUB_REF#refs/tags/v}
+        echo "VERSION=$TAG" >> $GITHUB_OUTPUT
+        echo "Tag version: $TAG"
+        
+    - name: Update project version
+      run: |
+        # Update the version in the project file
+        sed -i "s/<Version>.*<\/Version>/<Version>${{ steps.version.outputs.VERSION }}<\/Version>/" src/LoadSharp/LoadSharp.csproj
+        
+    - name: Restore dependencies
+      run: dotnet restore LoadSharp.sln
+      
+    - name: Build solution
+      run: dotnet build LoadSharp.sln --configuration Release --no-restore
+      
+    - name: Run tests
+      run: |
+        dotnet test LoadSharp.sln \
+          --configuration Release \
+          --no-build \
+          --verbosity normal \
+          --logger "trx;LogFileName=test-results.trx" \
+          --collect:"XPlat Code Coverage" \
+          --results-directory ./TestResults
+          
+    - name: Generate test report
+      run: |
+        # Install and run report generator
+        dotnet tool install -g dotnet-reportgenerator-globaltool
+        reportgenerator \
+          -reports:"./TestResults/*/coverage.cobertura.xml" \
+          -targetdir:"./TestResults/CoverageReport" \
+          -reporttypes:"MarkdownSummaryGithub;Cobertura" \
+          -verbosity:Info
+          
+        # Generate test report
+        mkdir -p ./release-artifacts
+        dotnet run --project tools/TestReportGenerator/TestReportGenerator.csproj --configuration Release -- \
+          --input "./TestResults/test-results.trx" \
+          --output "./release-artifacts/test-results.md" \
+          --coverage "./TestResults/CoverageReport/SummaryGithub.md"
+          
+    - name: Pack NuGet package
+      run: |
+        dotnet pack src/LoadSharp/LoadSharp.csproj \
+          --configuration Release \
+          --no-build \
+          --output ./release-artifacts \
+          -p:PackageVersion=${{ steps.version.outputs.VERSION }}
+          
+    - name: Create Release Notes
+      run: |
+        cat > ./release-artifacts/RELEASE_NOTES.md << 'EOF'
+        # LoadSharp v${{ steps.version.outputs.VERSION }}
+        
+        ## 🎉 Release Highlights
+        
+        This release includes the latest improvements to the LoadSharp load testing framework.
+        
+        ## 📊 Test Results
+        
+        All tests are passing with comprehensive coverage analysis.
+        
+        ## 📦 Installation
+        
+        ```bash
+        dotnet add package LoadSharp --version ${{ steps.version.outputs.VERSION }}
+        ```
+        
+        ## 🔧 Usage
+        
+        ```csharp
+        using LoadSharp.Core;
+        
+        var scenario = new Scenario("MyTest")
+            .WithStep("GET /api/health", async ctx => {
+                var response = await ctx.HttpClient.GetAsync("https://api.example.com/health");
+                return response.IsSuccessStatusCode;
+            })
+            .WithVirtualUsers(10)
+            .WithDuration(TimeSpan.FromMinutes(1));
+            
+        await LoadRunner.RunAsync(scenario);
+        ```
+        
+        ## 📈 What's Changed
+        
+        - Enhanced test reporting and coverage analysis
+        - Improved CI/CD pipeline with quality gates
+        - Better error handling and metrics collection
+        - Updated documentation and examples
+        
+        **Full Changelog**: https://github.com/${{ github.repository }}/compare/v${{ steps.version.outputs.VERSION }}...HEAD
+        EOF
+        
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{ steps.version.outputs.VERSION }}
+        name: LoadSharp v${{ steps.version.outputs.VERSION }}
+        body_path: ./release-artifacts/RELEASE_NOTES.md
+        files: |
+          ./release-artifacts/*.nupkg
+          ./release-artifacts/test-results.md
+        draft: false
+        prerelease: false
+        
+    - name: Publish to NuGet
+      run: |
+        dotnet nuget push ./release-artifacts/*.nupkg \
+          --source https://api.nuget.org/v3/index.json \
+          --api-key ${{ secrets.NUGET_API_KEY }} \
+          --skip-duplicate
+      env:
+        NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}

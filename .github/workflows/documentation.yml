@@ -1,0 +1,128 @@
+name: Documentation
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**/*.cs'
+      - 'docs/**/*.md'
+      - 'readme.md'
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '9.0.x'
+
+jobs:
+  generate-docs:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        
+    - name: Install DocFX
+      run: |
+        dotnet tool install -g docfx
+        
+    - name: Create DocFX project
+      run: |
+        mkdir -p ./docs-site
+        cat > ./docs-site/docfx.json << 'EOF'
+        {
+          "metadata": [
+            {
+              "src": [
+                {
+                  "files": ["src/LoadSharp/**/*.cs"],
+                  "exclude": ["**/bin/**", "**/obj/**"]
+                }
+              ],
+              "dest": "api",
+              "disableGitFeatures": false,
+              "disableDefaultFilter": false
+            }
+          ],
+          "build": {
+            "content": [
+              {
+                "files": ["api/**.yml", "api/index.md"]
+              },
+              {
+                "files": ["docs/**.md", "*.md"],
+                "exclude": ["**/bin/**", "**/obj/**"]
+              }
+            ],
+            "resource": [
+              {
+                "files": ["images/**"]
+              }
+            ],
+            "dest": "_site",
+            "globalMetadata": {
+              "_appName": "LoadSharp",
+              "_appTitle": "LoadSharp - .NET Load Testing Framework",
+              "_appFooter": "LoadSharp - MIT Licensed Load Testing Framework",
+              "_gitContribute": {
+                "repo": "https://github.com/${{ github.repository }}",
+                "branch": "main"
+              }
+            },
+            "template": ["default"],
+            "postProcessors": ["ExtractSearchIndex"]
+          }
+        }
+        EOF
+        
+    - name: Create API documentation index
+      run: |
+        mkdir -p ./api
+        cat > ./api/index.md << 'EOF'
+        # LoadSharp API Reference
+        
+        Welcome to the LoadSharp API documentation. LoadSharp is a minimal, MIT-licensed load testing framework for .NET 9.
+        
+        ## Core Components
+        
+        - **[LoadRunner](xref:LoadSharp.Core.LoadRunner)** - Main execution engine
+        - **[Scenario](xref:LoadSharp.Core.Scenario)** - Test scenario definition
+        - **[LoadStep](xref:LoadSharp.Core.LoadStep)** - Individual test steps
+        - **[StepContext](xref:LoadSharp.Core.StepContext)** - Execution context
+        - **[MetricsCollector](xref:LoadSharp.Core.MetricsCollector)** - Performance metrics
+        
+        ## Getting Started
+        
+        ```csharp
+        using LoadSharp.Core;
+        
+        var scenario = new Scenario("Example")
+            .WithStep("HTTP Request", async ctx => {
+                var response = await ctx.HttpClient.GetAsync("https://httpbin.org/get");
+                return response.IsSuccessStatusCode;
+            })
+            .WithVirtualUsers(5)
+            .WithDuration(TimeSpan.FromSeconds(30));
+            
+        await LoadRunner.RunAsync(scenario);
+        ```
+        
+        Browse the API reference using the navigation on the left.
+        EOF
+        
+    - name: Build documentation
+      run: |
+        cd docs-site
+        docfx metadata
+        docfx build
+        
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      if: github.ref == 'refs/heads/main'
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs-site/_site
+        cname: loadsharp.github.io

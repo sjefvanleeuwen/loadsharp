@@ -1,0 +1,140 @@
+name: Quality Gate
+
+on:
+  pull_request:
+    branches: [ main ]
+
+env:
+  DOTNET_VERSION: '9.0.x'
+
+jobs:
+  code-quality:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        
+    - name: Restore dependencies
+      run: dotnet restore LoadSharp.sln
+      
+    - name: Build solution
+      run: dotnet build LoadSharp.sln --configuration Release --no-restore
+      
+    - name: Run tests with coverage
+      run: |
+        dotnet test LoadSharp.sln \
+          --configuration Release \
+          --no-build \
+          --verbosity normal \
+          --logger "trx;LogFileName=test-results.trx" \
+          --collect:"XPlat Code Coverage" \
+          --results-directory ./TestResults
+          
+    - name: Install ReportGenerator tool
+      run: dotnet tool install -g dotnet-reportgenerator-globaltool
+      
+    - name: Generate coverage report
+      run: |
+        reportgenerator \
+          -reports:"./TestResults/*/coverage.cobertura.xml" \
+          -targetdir:"./TestResults/CoverageReport" \
+          -reporttypes:"Cobertura;TextSummary" \
+          -verbosity:Info
+          
+    - name: Check code coverage threshold
+      run: |
+        # Extract coverage percentage
+        COVERAGE=$(grep -o 'Line coverage: [0-9.]*%' ./TestResults/CoverageReport/Summary.txt | grep -o '[0-9.]*' || echo "0")
+        echo "Current coverage: $COVERAGE%"
+        
+        # Set minimum coverage threshold (can be adjusted)
+        THRESHOLD=20
+        
+        if (( $(echo "$COVERAGE >= $THRESHOLD" | bc -l) )); then
+          echo "✅ Coverage check passed: $COVERAGE% >= $THRESHOLD%"
+        else
+          echo "❌ Coverage check failed: $COVERAGE% < $THRESHOLD%"
+          echo "::error::Code coverage ($COVERAGE%) is below the required threshold ($THRESHOLD%)"
+          exit 1
+        fi
+        
+    - name: Validate package can be built
+      run: |
+        dotnet pack src/LoadSharp/LoadSharp.csproj --configuration Release --no-build --output ./artifacts
+        
+        # Check if package was created
+        if [ ! -f ./artifacts/LoadSharp.0.1.0.nupkg ]; then
+          echo "❌ NuGet package was not created"
+          exit 1
+        fi
+        
+        echo "✅ NuGet package created successfully"
+        
+    - name: Comment PR with test results
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          
+          // Read test results if available
+          let testSummary = "📊 **Test Results:** Tests executed successfully";
+          
+          try {
+            const testResults = fs.readFileSync('./TestResults/test-results.trx', 'utf8');
+            const totalMatch = testResults.match(/total="(\d+)"/);
+            const passedMatch = testResults.match(/passed="(\d+)"/);
+            const failedMatch = testResults.match(/failed="(\d+)"/);
+            
+            if (totalMatch && passedMatch) {
+              const total = totalMatch[1];
+              const passed = passedMatch[1];
+              const failed = failedMatch ? failedMatch[1] : '0';
+              
+              testSummary = `📊 **Test Results:** ${passed}/${total} tests passed`;
+              if (failed !== '0') {
+                testSummary += ` (${failed} failed)`;
+              }
+            }
+          } catch (e) {
+            console.log('Could not read test results');
+          }
+          
+          // Read coverage if available
+          let coverageSummary = "📈 **Coverage:** Analysis completed";
+          
+          try {
+            const coverageText = fs.readFileSync('./TestResults/CoverageReport/Summary.txt', 'utf8');
+            const coverageMatch = coverageText.match(/Line coverage: ([\d.]+)%/);
+            
+            if (coverageMatch) {
+              const coverage = coverageMatch[1];
+              const coverageEmoji = coverage >= 80 ? "🟢" : coverage >= 60 ? "🟡" : "🔴";
+              coverageSummary = `📈 **Coverage:** ${coverageEmoji} ${coverage}%`;
+            }
+          } catch (e) {
+            console.log('Could not read coverage results');
+          }
+          
+          const comment = `## 🚀 LoadSharp Quality Gate Report
+          
+          ${testSummary}
+          ${coverageSummary}
+          
+          ✅ Build successful
+          ✅ Package validation passed
+          
+          *Quality gate checks completed for commit ${context.sha.substring(0, 7)}*`;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });

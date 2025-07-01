@@ -1,5 +1,12 @@
 # LoadSharp
 
+[![Build Status](https://github.com/your-username/loadsharp/workflows/Build%20and%20Test/badge.svg)](https://github.com/your-username/loadsharp/actions)
+[![Tests](https://img.shields.io/badge/tests-14%20passing-brightgreen)](./docs/test-results.md)
+[![Coverage](https://img.shields.io/badge/coverage-22.1%25-red)](./docs/test-results.md)
+[![Quality Gate](https://img.shields.io/badge/quality%20gate-passing-brightgreen)](https://github.com/your-username/loadsharp/actions)
+[![NuGet](https://img.shields.io/badge/nuget-v0.1.0-blue)](https://www.nuget.org/packages/LoadSharp)
+[![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
+
 **LoadSharp** is a minimal, MIT-licensed load testing framework written in **C#** for **.NET 9**. It aims to be a lightweight, extensible alternative to commercial or restrictive tools, with clean scenario modeling and actionable metrics — built for developers who want full control.
 
 ---
@@ -150,68 +157,123 @@ LoadSharp collects the following metrics:
 
 ---
 
-## 🧩 Roadmap
+## 🔄 CI/CD Pipeline
 
-| Feature                  | Status    | Priority |
-|--------------------------|-----------|----------|
-| Step-level timing        | ✅ Done    | High     |
-| Scenario weights/distribution | 🔜 Planned | High     |
-| Data feeders (CSV/JSON)  | 🔜 Planned | High     |
-| Assertion engine         | 🔜 Planned | Medium   |
-| Ramp-up/ramp-down phases | 🔜 Planned | Medium   |
-| HTML/JSON reports        | 🔜 Planned | Medium   |
-| WebSocket support        | 🔜 Planned | Low      |
-| Plugin architecture      | 🔜 Planned | Low      |
-| Distributed testing      | 🔜 Planned | Low      |
+LoadSharp uses a comprehensive GitOps workflow with automated testing, quality gates, and releases.
 
----
+### 🚀 GitHub Actions Workflows
 
-## 🔒 License
+#### Build and Test (Main)
+- **Trigger:** Push to `main` or `develop`, Pull Requests to `main`
+- **Features:**
+  - ✅ Automated testing with xUnit
+  - 📊 Code coverage analysis with ReportGenerator
+  - 📋 Automated test report generation
+  - 🏷️ Dynamic badge updates
+  - 📦 NuGet package validation
 
-MIT — use it freely in personal, academic, or commercial projects.
+#### Quality Gate (PR)
+- **Trigger:** Pull Requests to `main`
+- **Features:**
+  - ✅ Code coverage threshold validation (20% minimum)
+  - 📦 Package build verification
+  - 💬 Automated PR comments with test results
+  - 🚫 Blocks merge if quality standards not met
 
+#### Release (Tags)
+- **Trigger:** Version tags (`v*`)
+- **Features:**
+  - 🎯 Automatic GitHub releases
+  - 📦 NuGet package publishing
+  - 📄 Generated release notes
+  - 📊 Test results in release artifacts
+
+#### Documentation (API Docs)
+- **Trigger:** Changes to source code or docs
+- **Features:**
+  - 📚 Automated API documentation with DocFX
+  - 🌐 GitHub Pages deployment
+  - 🔄 Live updates on code changes
+
+### 🧪 Local Development Pipeline
+
+#### Quick Test Run
+```bash
+# Windows
+.\run-tests.cmd
+
+# Cross-platform
+dotnet test
 ```
-MIT License
 
-Copyright (c) 2025 LoadSharp Contributors
+#### Full Pipeline (with Coverage)
+```powershell
+# Run complete pipeline locally
+.\run-tests.ps1
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+# Or manually step by step
+dotnet restore LoadSharp.sln
+dotnet build LoadSharp.sln --configuration Release --no-restore
+dotnet test LoadSharp.sln --configuration Release --no-build --collect:"XPlat Code Coverage"
+reportgenerator -reports:"./TestResults/*/coverage.cobertura.xml" -targetdir:"./TestResults/CoverageReport" -reporttypes:"Html;MarkdownSummaryGithub"
 ```
 
+### 📊 Test Reporting
+
+The pipeline automatically generates:
+- **Test Results:** [./docs/test-results.md](./docs/test-results.md)
+- **Coverage Report:** `./TestResults/CoverageReport/index.html`
+- **TRX Files:** Machine-readable test results
+- **Coverage XML:** Cobertura format for external tools
+
+### 🏷️ Badge System
+
+Badges are automatically updated after each successful build:
+- **Tests:** Shows current test count and status
+- **Coverage:** Real-time code coverage percentage
+- **Build:** GitHub Actions build status
+- **Version:** Current NuGet package version
+
+### 🔄 Release Process
+
+1. **Development:** Work on feature branches
+2. **Pull Request:** Quality gate runs automatically
+3. **Merge:** Main pipeline updates badges and reports
+4. **Tag Release:** `git tag v1.0.1 && git push origin v1.0.1`
+5. **Automatic:** GitHub release + NuGet publish
+
 ---
 
-## 🤝 Contributing
+## 🧑‍💻 Contributing
 
-Pull requests, feature suggestions, and bug reports are welcome. Please open an issue first to discuss major changes.
+### Development Workflow
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes and add tests
+4. Run the local pipeline: `.\run-tests.cmd`
+5. Commit your changes: `git commit -m 'Add amazing feature'`
+6. Push to the branch: `git push origin feature/amazing-feature`
+7. Open a Pull Request
 
----
+### Quality Standards
+- ✅ All tests must pass
+- 📊 Code coverage should not decrease
+- 📝 Public APIs must be documented
+- 🧪 New features should include tests
+- 📋 Follow existing code style
 
-## 🛠 Built With
+### Local Setup
+```bash
+# Clone the repository
+git clone https://github.com/your-username/loadsharp.git
+cd loadsharp
 
-- .NET 9
-- System.Diagnostics
-- System.Net.Http
-- System.Text.Json
-- Good ol' async/await
+# Restore dependencies
+dotnet restore
 
----
+# Run tests
+.\run-tests.cmd
 
-## 📣 Credits
-
-This project was inspired by modern load testing frameworks with the goal of delivering an MIT-friendly, .NET-native alternative for controlled load testing in professional environments.
+# Run examples
+dotnet run --project src/LoadSharp.Examples
+```
