@@ -23,6 +23,11 @@
 - ✅ Clean console output with real-time stats
 - ✅ Error handling and categorization
 - ✅ Fully MIT-licensed — no usage restrictions
+- 🆕 Multi-step scenario chaining with fluent API
+- 🆕 Advanced weight configuration for load balancing
+- 🆕 Comprehensive test coverage with xUnit framework
+- 🆕 Automated GitOps pipeline with GitHub Actions
+- 🆕 Real-time badge updates and quality gates
 
 ---
 
@@ -277,5 +282,6 @@ dotnet restore
 # Run examples
 dotnet run --project src/LoadSharp.Examples
 ```
-#   A d d i t i o n a l   t r i g g e r   t e s t  
+#   A d d i t i o n a l   t r i g g e r   t e s t 
+ 
  

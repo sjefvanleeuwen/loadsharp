@@ -84,6 +84,41 @@ public class ScenarioTests
         // Act & Assert
         Assert.Throws<ArgumentException>(() => scenario.WithVirtualUsers(users));
     }
+
+    [Fact]
+    public void Scenario_WithMultipleSteps_AddsAllSteps()
+    {
+        // Arrange
+        var scenario = new Scenario("MultiStepScenario");
+
+        // Act
+        scenario
+            .WithStep("Step 1", async ctx => true)
+            .WithStep("Step 2", async ctx => true)
+            .WithStep("Step 3", async ctx => false);
+
+        // Assert
+        Assert.Equal(3, scenario.Steps.Count);
+        Assert.Equal("Step 1", scenario.Steps[0].Name);
+        Assert.Equal("Step 2", scenario.Steps[1].Name);
+        Assert.Equal("Step 3", scenario.Steps[2].Name);
+    }
+
+    [Theory]
+    [InlineData(50)]
+    [InlineData(150)]
+    [InlineData(200)]
+    public void Scenario_WithWeight_AcceptsValidValues(int weight)
+    {
+        // Arrange
+        var scenario = new Scenario("TestScenario");
+
+        // Act
+        scenario.WithWeight(weight);
+
+        // Assert
+        Assert.Equal(weight, scenario.Weight);
+    }
 }
 
 public class LoadTestConfigTests
