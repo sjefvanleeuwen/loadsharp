@@ -10,13 +10,21 @@ env:
   DOTNET_VERSION: '9.0.x'
   SOLUTION_FILE: 'LoadSharp.sln'
 
+# Add permissions for the workflow to write to the repository
+permissions:
+  contents: write
+  pull-requests: read
+  actions: read
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
       
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
@@ -116,22 +124,18 @@ jobs:
       run: |
         # Update test badge
         sed -i "s|!\[Tests\](https://img.shields.io/badge/tests-[^)]*)|![Tests](https://img.shields.io/badge/tests-${{ steps.metrics.outputs.TEST_STATUS }}-${{ steps.metrics.outputs.TEST_COLOR }})|g" readme.md
-        
-        # Update coverage badge  
+          # Update coverage badge  
         sed -i "s|!\[Coverage\](https://img.shields.io/badge/coverage-[^)]*)|![Coverage](https://img.shields.io/badge/coverage-${{ steps.metrics.outputs.COVERAGE }}%25-${{ steps.metrics.outputs.COVERAGE_COLOR }})|g" readme.md
         
     - name: Commit test results
-      if: github.ref == 'refs/heads/main'
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        
-        git add docs/test-results.md readme.md
-        
-        if ! git diff --staged --quiet; then
-          git commit -m "📊 Update test results and badges [skip ci]"
-          git push
-        fi
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        commit_message: "📊 Update test results and badges [skip ci]"
+        file_pattern: "docs/test-results.md readme.md"
+        commit_user_name: "github-actions[bot]"
+        commit_user_email: "41898282+github-actions[bot]@users.noreply.github.com"
+        skip_dirty_check: false
         
     - name: Upload test results
       uses: actions/upload-artifact@v4
