@@ -277,3 +277,5 @@ dotnet restore
 # Run examples
 dotnet run --project src/LoadSharp.Examples
 ```
+#   A d d i t i o n a l   t r i g g e r   t e s t  
+ 
