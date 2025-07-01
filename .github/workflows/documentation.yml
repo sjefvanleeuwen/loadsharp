@@ -9,12 +9,29 @@ on:
       - 'readme.md'
   workflow_dispatch:
 
+# Add permissions for GitHub Pages deployment
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 env:
   DOTNET_VERSION: '9.0.x'
 
 jobs:
   generate-docs:
     runs-on: ubuntu-latest
+    
+    # Configure GitHub Pages
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     
     steps:
     - name: Checkout code
@@ -24,10 +41,16 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
-        
-    - name: Install DocFX
+          - name: Install DocFX
       run: |
         dotnet tool install -g docfx
+        echo "DocFX installed successfully"
+        
+    - name: Verify DocFX installation
+      run: |
+        docfx --version || echo "DocFX not found in PATH, trying direct installation"
+        export PATH="$PATH:$HOME/.dotnet/tools"
+        docfx --version
         
     - name: Create DocFX project
       run: |
@@ -112,17 +135,20 @@ jobs:
         
         Browse the API reference using the navigation on the left.
         EOF
-        
-    - name: Build documentation
+          - name: Build documentation
       run: |
         cd docs-site
         docfx metadata
         docfx build
         
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      if: github.ref == 'refs/heads/main'
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+      
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./docs-site/_site
-        cname: loadsharp.github.io
+        path: ./docs-site/_site
+        
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4

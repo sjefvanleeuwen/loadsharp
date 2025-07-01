@@ -1,0 +1,211 @@
+name: Deploy Documentation to Pages
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'docs/**'
+      - 'readme.md'
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # Build job
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+        
+      - name: Create documentation site
+        run: |
+          mkdir -p _site
+          
+          # Copy README as index
+          cp readme.md _site/index.md
+          
+          # Copy docs folder
+          if [ -d "docs" ]; then
+            cp -r docs/* _site/
+          fi
+          
+          # Create a simple index.html that redirects to the markdown
+          cat > _site/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>LoadSharp Documentation</title>
+              <style>
+                  body {
+                      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+                      max-width: 1200px;
+                      margin: 0 auto;
+                      padding: 2rem;
+                      line-height: 1.6;
+                      color: #333;
+                  }
+                  .header {
+                      text-align: center;
+                      margin-bottom: 2rem;
+                      padding-bottom: 1rem;
+                      border-bottom: 2px solid #e1e5e9;
+                  }
+                  .nav {
+                      display: flex;
+                      gap: 1rem;
+                      justify-content: center;
+                      margin-bottom: 2rem;
+                  }
+                  .nav a {
+                      padding: 0.5rem 1rem;
+                      background: #f6f8fa;
+                      text-decoration: none;
+                      border-radius: 6px;
+                      color: #0969da;
+                      border: 1px solid #d0d7de;
+                  }
+                  .nav a:hover {
+                      background: #0969da;
+                      color: white;
+                  }
+                  .content {
+                      background: #f6f8fa;
+                      padding: 2rem;
+                      border-radius: 8px;
+                  }
+                  pre {
+                      background: #161b22;
+                      color: #f0f6fc;
+                      padding: 1rem;
+                      border-radius: 6px;
+                      overflow-x: auto;
+                  }
+                  .badge {
+                      display: inline-block;
+                      margin: 0.2rem;
+                  }
+              </style>
+          </head>
+          <body>
+              <div class="header">
+                  <h1>🚀 LoadSharp Documentation</h1>
+                  <p>Minimal, MIT-licensed load testing framework for .NET 9</p>
+                  <div class="badges">
+                      <img src="https://github.com/sjefvanleeuwen/loadsharp/workflows/Build%20and%20Test/badge.svg" alt="Build Status" class="badge">
+                      <img src="https://img.shields.io/badge/tests-14%20passing-brightgreen" alt="Tests" class="badge">
+                      <img src="https://img.shields.io/badge/coverage-22.1%25-red" alt="Coverage" class="badge">
+                      <img src="https://img.shields.io/badge/license-MIT-green" alt="License" class="badge">
+                  </div>
+              </div>
+              
+              <div class="nav">
+                  <a href="#getting-started">Getting Started</a>
+                  <a href="#examples">Examples</a>
+                  <a href="test-results.html">Test Results</a>
+                  <a href="https://github.com/sjefvanleeuwen/loadsharp">GitHub Repository</a>
+              </div>
+              
+              <div class="content">
+                  <h2 id="getting-started">🚀 Quick Start</h2>
+                  <pre><code>dotnet add package LoadSharp</code></pre>
+                  
+                  <h3>Basic Usage</h3>
+                  <pre><code>using LoadSharp.Core;
+
+var scenario = new Scenario("HttpTest")
+    .WithStep("GET /status", async ctx =>
+    {
+        var res = await ctx.HttpClient.GetAsync("https://httpbin.org/status/200");
+        return res.IsSuccessStatusCode;
+    })
+    .WithDuration(TimeSpan.FromSeconds(30))
+    .WithVirtualUsers(10);
+
+await LoadRunner.RunAsync(scenario);</code></pre>
+                  
+                  <h2 id="examples">📋 Examples</h2>
+                  <ul>
+                      <li><a href="https://github.com/sjefvanleeuwen/loadsharp/tree/main/src/LoadSharp.Examples">Complete Examples</a></li>
+                      <li><a href="test-results.html">Latest Test Results</a></li>
+                      <li><a href="https://github.com/sjefvanleeuwen/loadsharp/actions">CI/CD Pipeline</a></li>
+                  </ul>
+                  
+                  <h2>🎯 Features</h2>
+                  <ul>
+                      <li>✅ Scenario-based load testing</li>
+                      <li>✅ Async C# step definitions</li>
+                      <li>✅ Virtual user configuration</li>
+                      <li>✅ Built-in HTTP client support</li>
+                      <li>✅ Real-time metrics collection</li>
+                      <li>✅ MIT Licensed - no restrictions</li>
+                  </ul>
+              </div>
+          </body>
+          </html>
+          EOF
+          
+          # Convert test results to HTML if available
+          if [ -f "docs/test-results.md" ]; then
+            # Simple markdown to HTML conversion for test results
+            cat > _site/test-results.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>LoadSharp Test Results</title>
+              <meta charset="UTF-8">
+              <style>
+                  body { font-family: system-ui, sans-serif; max-width: 1200px; margin: 0 auto; padding: 2rem; }
+                  table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+                  th, td { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
+                  th { background: #f5f5f5; }
+                  .success { color: #22863a; }
+                  .failure { color: #d73a49; }
+                  pre { background: #f6f8fa; padding: 1rem; border-radius: 6px; overflow-x: auto; }
+              </style>
+          </head>
+          <body>
+          EOF
+            
+            # Add basic HTML header and convert markdown table to HTML
+            echo '<h1>🧪 LoadSharp Test Results</h1>' >> _site/test-results.html
+            echo '<p><a href="index.html">← Back to Documentation</a></p>' >> _site/test-results.html
+            
+            # Convert the markdown file to basic HTML (simplified)
+            sed 's/^# /\<h1\>/g; s/^## /\<h2\>/g; s/^### /\<h3\>/g' docs/test-results.md | \
+            sed 's/✅/<span class="success">✅<\/span>/g; s/❌/<span class="failure">❌<\/span>/g' >> _site/test-results.html
+            
+            echo '</body></html>' >> _site/test-results.html
+          fi
+          
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./_site
+
+  # Deployment job
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
