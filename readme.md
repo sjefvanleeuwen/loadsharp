@@ -19,25 +19,32 @@
 
 ---
 
-## 📂 Folder Structure
+## 📂 Solution Structure
 
 ```
-LoadSharp/
-├── Program.cs                   # Main entry point
-├── Core/
-│   ├── LoadStep.cs             # Load step definition
-│   ├── Scenario.cs             # Scenario with steps and configuration
-│   ├── LoadRunner.cs           # Execution engine
-│   ├── StepContext.cs          # Execution context for steps
-│   ├── StepResult.cs           # Step execution result
-│   └── MetricsCollector.cs     # Tracks performance metrics
-├── Models/
-│   ├── LoadTestConfig.cs       # Global test configuration
-│   └── ScenarioStats.cs        # Runtime statistics
-├── Utils/
-│   └── ConsoleReporter.cs      # Simple CLI output helper
-├── LoadSharp.csproj            # .NET 9 project file
-└── README.md                   # You are here
+LoadSharp.sln                   # Visual Studio solution file
+├── src/
+│   ├── LoadSharp/              # Main class library (distributable as NuGet package)
+│   │   ├── LoadSharp.csproj    # Library project file
+│   │   ├── Core/
+│   │   │   ├── LoadStep.cs     # Load step definition
+│   │   │   ├── Scenario.cs     # Scenario with steps and configuration
+│   │   │   ├── LoadRunner.cs   # Execution engine
+│   │   │   ├── StepContext.cs  # Execution context for steps
+│   │   │   ├── StepResult.cs   # Step execution result
+│   │   │   └── MetricsCollector.cs # Tracks performance metrics
+│   │   ├── Models/
+│   │   │   ├── LoadTestConfig.cs   # Global test configuration
+│   │   │   └── ScenarioStats.cs    # Runtime statistics
+│   │   └── Utils/
+│   │       └── ConsoleReporter.cs  # Simple CLI output helper
+│   └── LoadSharp.Examples/     # Console app with usage examples
+│       ├── LoadSharp.Examples.csproj
+│       └── Program.cs          # Example scenarios and usage
+└── tests/
+    └── LoadSharp.Tests/        # xUnit test project
+        ├── LoadSharp.Tests.csproj
+        └── UnitTest1.cs        # Unit tests for the framework
 ```
 
 ---
@@ -117,7 +124,17 @@ var scenario = new Scenario("UserJourney")
 ```bash
 git clone https://github.com/your-username/loadsharp.git
 cd loadsharp
-dotnet run
+dotnet run --project src/LoadSharp.Examples
+```
+
+**Or run tests:**
+```bash
+dotnet test
+```
+
+**Or build the library:**
+```bash
+dotnet build src/LoadSharp
 ```
 
 ---
