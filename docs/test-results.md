@@ -1,9 +1,9 @@
 # 🧪 Test Results Report
 
-**Generated:** 2025-07-01 13:22:40 UTC
-**Test Run:** 2025-07-01 15:22:40 - 2025-07-01 15:22:40
+**Generated:** 2025-07-01 13:39:44 UTC
+**Test Run:** 2025-07-01 13:39:44 - 2025-07-01 13:39:44
 **Duration:** 00:00:00
-**Run by:** LENOVO-IDEAPAD\sjefv
+**Run by:** Unknown
 
 ## 📊 Summary
 
@@ -17,30 +17,75 @@
 | **⏱️ Timeout** | 0 |
 | **🚫 Aborted** | 0 |
 | **❓ Inconclusive** | 0 |
-| **Success Rate** | 100,0% |
+| **Success Rate** | 100.0% |
 
 ## ✅ Overall Status
 
 🎉 **All tests passed successfully!**
 
+## 📈 Code Coverage
+
+### Detailed Coverage Report
+
+# Summary
+<details open><summary>Summary</summary>
+
+|||
+|:---|:---|
+| Generated on: | 07/01/2025 - 13:39:41 |
+| Coverage date: | 07/01/2025 - 13:39:39 |
+| Parser: | Cobertura |
+| Assemblies: | 1 |
+| Classes: | 9 |
+| Files: | 9 |
+| **Line coverage:** | 22.1% (54 of 244) |
+| Covered lines: | 54 |
+| Uncovered lines: | 190 |
+| Coverable lines: | 244 |
+| Total lines: | 519 |
+| **Branch coverage:** | 18.5% (13 of 70) |
+| Covered branches: | 13 |
+| Total branches: | 70 |
+| **Method coverage:** | [Feature is only available for sponsors](https://reportgenerator.io/pro) |
+
+</details>
+
+## Coverage
+<details><summary>LoadSharp - 22.1%</summary>
+
+|**Name**|**Line**|**Branch**|
+|:---|---:|---:|
+|**LoadSharp**|**22.1%**|**18.5%**|
+|LoadSharp.Core.LoadRunner|0%|0%|
+|LoadSharp.Core.LoadStep|83.3%|50%|
+|LoadSharp.Core.MetricsCollector|0%|0%|
+|LoadSharp.Core.Scenario|91.3%|62.5%|
+|LoadSharp.Core.StepContext|0%|0%|
+|LoadSharp.Core.StepResult|100%|50%|
+|LoadSharp.Models.LoadTestConfig|55%|50%|
+|LoadSharp.Models.ScenarioStats|0%||
+|LoadSharp.Utils.ConsoleReporter|0%|0%|
+
+</details>
+
 ## ⏱️ Test Execution Details
 
 | Test Name | Outcome | Duration |
 |-----------|---------|----------|
-| LoadSharp.Tests.ScenarioTests.Scenario_WithWeight_SetsWeight | ✅ Passed | 00:00:00.0021294 |
-| LoadSharp.Tests.ScenarioTests.Scenario_WithVirtualUsers_SetsVirtualUsers | ✅ Passed | 00:00:00.0001256 |
-| LoadSharp.Tests.LoadTestConfigTests.LoadTestConfig_WithMaxFailureRate_ThrowsForInvalidValues(rate: -0,10000000000000001) | ✅ Passed | 00:00:00.0005494 |
-| LoadSharp.Tests.LoadTestConfigTests.LoadTestConfig_WithMaxFailureRate_SetsValue | ✅ Passed | 00:00:00.0002591 |
-| LoadSharp.Tests.ScenarioTests.Scenario_WithVirtualUsers_ThrowsForInvalidValues(users: 0) | ✅ Passed | 00:00:00.0001593 |
-| LoadSharp.Tests.ScenarioTests.Scenario_WithStep_AddsStep | ✅ Passed | 00:00:00.0064063 |
-| LoadSharp.Tests.ScenarioTests.Scenario_Constructor_SetsName | ✅ Passed | 00:00:00.0007210 |
-| LoadSharp.Tests.StepResultTests.StepResult_CreateSuccess_CreatesSuccessfulResult | ✅ Passed | 00:00:00.0002179 |
-| LoadSharp.Tests.LoadTestConfigTests.LoadTestConfig_WithWarmupDuration_SetsValue | ✅ Passed | 00:00:00.0064932 |
-| LoadSharp.Tests.LoadTestConfigTests.LoadTestConfig_WithMaxFailureRate_ThrowsForInvalidValues(rate: 1,1000000000000001) | ✅ Passed | 00:00:00.0002153 |
-| LoadSharp.Tests.ScenarioTests.Scenario_WithDuration_SetsDuration | ✅ Passed | 00:00:00.0001872 |
-| LoadSharp.Tests.StepResultTests.StepResult_CreateFailure_CreatesFailedResult | ✅ Passed | 00:00:00.0084037 |
-| LoadSharp.Tests.ScenarioTests.Scenario_WithVirtualUsers_ThrowsForInvalidValues(users: -1) | ✅ Passed | 00:00:00.0001426 |
-| LoadSharp.Tests.LoadTestConfigTests.LoadTestConfig_Constructor_SetsDefaults | ✅ Passed | 00:00:00.0017885 |
+| LoadSharp.Tests.ScenarioTests.Scenario_WithVirtualUsers_ThrowsForInvalidValues(users: 0) | ✅ Passed | 00:00:00.0002592 |
+| LoadSharp.Tests.StepResultTests.StepResult_CreateFailure_CreatesFailedResult | ✅ Passed | 00:00:00.0125777 |
+| LoadSharp.Tests.ScenarioTests.Scenario_WithDuration_SetsDuration | ✅ Passed | 00:00:00.0002256 |
+| LoadSharp.Tests.ScenarioTests.Scenario_Constructor_SetsName | ✅ Passed | 00:00:00.0011078 |
+| LoadSharp.Tests.LoadTestConfigTests.LoadTestConfig_WithMaxFailureRate_ThrowsForInvalidValues(rate: 1.1000000000000001) | ✅ Passed | 00:00:00.0002049 |
+| LoadSharp.Tests.ScenarioTests.Scenario_WithVirtualUsers_ThrowsForInvalidValues(users: -1) | ✅ Passed | 00:00:00.0002156 |
+| LoadSharp.Tests.ScenarioTests.Scenario_WithWeight_SetsWeight | ✅ Passed | 00:00:00.0029513 |
+| LoadSharp.Tests.ScenarioTests.Scenario_WithStep_AddsStep | ✅ Passed | 00:00:00.0092006 |
+| LoadSharp.Tests.LoadTestConfigTests.LoadTestConfig_WithMaxFailureRate_SetsValue | ✅ Passed | 00:00:00.0001802 |
+| LoadSharp.Tests.LoadTestConfigTests.LoadTestConfig_WithMaxFailureRate_ThrowsForInvalidValues(rate: -0.10000000000000001) | ✅ Passed | 00:00:00.0020591 |
+| LoadSharp.Tests.ScenarioTests.Scenario_WithVirtualUsers_SetsVirtualUsers | ✅ Passed | 00:00:00.0001845 |
+| LoadSharp.Tests.LoadTestConfigTests.LoadTestConfig_WithWarmupDuration_SetsValue | ✅ Passed | 00:00:00.0099091 |
+| LoadSharp.Tests.StepResultTests.StepResult_CreateSuccess_CreatesSuccessfulResult | ✅ Passed | 00:00:00.0003502 |
+| LoadSharp.Tests.LoadTestConfigTests.LoadTestConfig_Constructor_SetsDefaults | ✅ Passed | 00:00:00.0031928 |
 
 ---
-*Report generated by LoadSharp Test Report Generator at 2025-07-01 13:22:40 UTC*
+*Report generated by LoadSharp Test Report Generator at 2025-07-01 13:39:44 UTC*

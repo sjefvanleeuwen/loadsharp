@@ -1,8 +1,8 @@
 # LoadSharp
 
 [![Build Status](https://github.com/your-username/loadsharp/workflows/Build%20and%20Test/badge.svg)](https://github.com/your-username/loadsharp/actions)
-[![Tests](https://img.shields.io/badge/tests-14%20passing-brightgreen)](./docs/test-results.md)
-[![Coverage](https://img.shields.io/badge/coverage-22.1%25-red)](./docs/test-results.md)
+[![Tests](https://img.shields.io/badge/tests-passing-brightgreen)](./docs/test-results.md)
+[![Coverage](https://img.shields.io/badge/coverage-%25-red)](./docs/test-results.md)
 [![Quality Gate](https://img.shields.io/badge/quality%20gate-passing-brightgreen)](https://github.com/your-username/loadsharp/actions)
 [![NuGet](https://img.shields.io/badge/nuget-v0.1.0-blue)](https://www.nuget.org/packages/LoadSharp)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
@@ -277,3 +277,5 @@ dotnet restore
 # Run examples
 dotnet run --project src/LoadSharp.Examples
 ```
+#   A d d i t i o n a l   t r i g g e r   t e s t  
+ 
