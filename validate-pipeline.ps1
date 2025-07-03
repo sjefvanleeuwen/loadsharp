@@ -107,11 +107,9 @@ Write-Host "===================" -ForegroundColor Cyan
 if ($errors.Count -eq 0) {
     Write-Host "🎉 All validations passed! Pipeline is ready for deployment." -ForegroundColor Green
     Write-Host ""
-    Write-Host "Next steps:" -ForegroundColor White
-    Write-Host "1. Push code to GitHub repository" -ForegroundColor Gray
+    Write-Host "Next steps:" -ForegroundColor White    Write-Host "1. Push code to GitHub repository" -ForegroundColor Gray
     Write-Host "2. Configure repository Actions permissions" -ForegroundColor Gray
     Write-Host "3. Add NUGET_API_KEY secret" -ForegroundColor Gray
-    Write-Host "4. Enable GitHub Pages (optional)" -ForegroundColor Gray
 } else {
     Write-Host "❌ Validation failed. Please fix the following issues:" -ForegroundColor Red
     foreach ($error in $errors) {

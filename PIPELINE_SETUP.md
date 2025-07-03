@@ -12,7 +12,7 @@
 - **Build & Test Workflow** - Runs on every push/PR to main
 - **Quality Gate Workflow** - PR validation with coverage thresholds
 - **Release Workflow** - Automated releases on version tags
-- **Documentation Workflow** - Auto-generated API docs on GitHub Pages
+- **Documentation Workflow** - Auto-generated API docs with DocFX
 
 ### 📊 **Automated Test Reporting**
 - **Live Test Reports** - Markdown reports in ./docs/test-results.md
@@ -75,11 +75,7 @@
 1. **Set up repository secrets** for NuGet publishing:
    - `NUGET_API_KEY` - Your NuGet.org API key
 
-2. **Enable GitHub Pages** in repository settings:
-   - Source: GitHub Actions
-   - Custom domain: optional
-
-3. **Create your first release:**
+2. **Create your first release:**
    ```bash
    git tag v0.1.0
    git push origin v0.1.0
