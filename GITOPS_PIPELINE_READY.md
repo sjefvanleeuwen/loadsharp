@@ -34,7 +34,7 @@ All workflows are syntactically correct and ready to run:
 
 4. **documentation.yml** - API documentation:
    - ✅ DocFX integration
-   - ✅ GitHub Pages deployment
+   - ✅ Documentation artifact generation
 
 ### 🧪 Test Framework Validation
 ```
@@ -65,11 +65,6 @@ Settings → Actions → General → Workflow permissions:
 Add these secrets in `Settings → Secrets and variables → Actions`:
 ```
 NUGET_API_KEY - Your NuGet.org API key for package publishing
-```
-
-### 3. GitHub Pages (Optional)
-```
-Settings → Pages → Source: GitHub Actions
 ```
 
 ## 🚀 Next Steps

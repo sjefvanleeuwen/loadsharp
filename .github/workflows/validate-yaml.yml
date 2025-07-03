@@ -1,0 +1,53 @@
+name: Validate YAML Files
+
+on:
+  push:
+    paths:
+      - '.github/workflows/*.yml'
+      - '.github/workflows/*.yaml'
+  pull_request:
+    paths:
+      - '.github/workflows/*.yml'
+      - '.github/workflows/*.yaml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    name: Validate YAML Syntax
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Install yamllint
+        run: pip install yamllint
+        
+      - name: Validate YAML files
+        run: |
+          echo "🔍 Validating YAML files..."
+          find .github/workflows -name "*.yml" -o -name "*.yaml" | while read file; do
+            echo "Checking: $file"
+            yamllint "$file" || exit 1
+          done
+          echo "✅ All YAML files are valid!"
+          
+      - name: Check for syntax issues
+        run: |
+          echo "🔧 Checking for common YAML issues..."
+          find .github/workflows -name "*.yml" -o -name "*.yaml" | while read file; do
+            echo "Analyzing: $file"
+            # Check for common issues
+            if grep -n "^[[:space:]]*$" "$file" | grep -q "^[0-9]*:$"; then
+              echo "⚠️  Warning: Empty lines found in $file (may cause issues)"
+            fi
+            if ! grep -q "^name:" "$file"; then
+              echo "❌ Error: Missing 'name' field in $file"
+              exit 1
+            fi
+            if ! grep -q "^on:" "$file"; then
+              echo "❌ Error: Missing 'on' field in $file"
+              exit 1
+            fi
+          done
+          echo "✅ All workflow files have required fields!"

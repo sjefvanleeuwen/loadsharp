@@ -197,7 +197,7 @@ LoadSharp uses a comprehensive GitOps workflow with automated testing, quality g
 - **Trigger:** Changes to source code or docs
 - **Features:**
   - 📚 Automated API documentation with DocFX
-  - 🌐 GitHub Pages deployment
+  - 📦 Documentation artifacts for download
   - 🔄 Live updates on code changes
 
 ### 🧪 Local Development Pipeline
@@ -293,7 +293,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 - 🐛 **Issues:** [GitHub Issues](https://github.com/sjefvanleeuwen/loadsharp/issues)
 - 💬 **Discussions:** [GitHub Discussions](https://github.com/sjefvanleeuwen/loadsharp/discussions)
-- 📖 **Documentation:** [GitHub Pages](https://sjefvanleeuwen.github.io/loadsharp/)
+- 📖 **Documentation:** [Repository Documentation](https://github.com/sjefvanleeuwen/loadsharp/tree/main/docs)
 
 ---
 
